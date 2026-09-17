@@ -87,37 +87,24 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
       {/* Card Header */}
       <div>
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+        {/* Top Type Label & Hover Actions Row */}
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <span
+            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase select-none ${
+              stickyNoteMode
+                ? 'bg-black/10 dark:bg-black/25 text-zinc-800 dark:text-zinc-200 border border-black/10 dark:border-white/10'
+                : isTodo
+                ? 'bg-emerald-100/90 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60'
+                : 'bg-indigo-100/90 text-indigo-800 dark:bg-indigo-950/70 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60'
+            }`}
+          >
             {isTodo ? (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleComplete(item.id);
-                }}
-                className="mt-0.5 text-zinc-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors cursor-pointer flex-shrink-0"
-                title={isCompleted ? 'Mark incomplete' : 'Mark complete'}
-              >
-                {isCompleted ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-500/10" />
-                ) : (
-                  <Circle className="w-5 h-5" />
-                )}
-              </button>
+              <CheckSquare className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
             ) : (
-              <FileText className="w-4 h-4 mt-0.5 text-zinc-400 flex-shrink-0" />
+              <FileText className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
             )}
-
-            <h3
-              className={`font-semibold text-base leading-snug break-words flex-1 ${
-                isCompleted
-                  ? 'line-through text-zinc-400 dark:text-zinc-500'
-                  : 'text-zinc-800 dark:text-zinc-100'
-              }`}
-            >
-              {item.title || '(Untitled)'}
-            </h3>
-          </div>
+            <span>{isTodo ? 'Todo' : 'Note'}</span>
+          </span>
 
           {/* Hover Actions */}
           <div className="flex items-center gap-1 flex-shrink-0">
@@ -149,6 +136,38 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Title and (for Todo) completion checkbox */}
+        <div className="flex items-start gap-2 mb-2">
+          {isTodo ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleComplete(item.id);
+              }}
+              className="mt-0.5 text-zinc-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors cursor-pointer flex-shrink-0"
+              title={isCompleted ? 'Mark incomplete' : 'Mark complete'}
+            >
+              {isCompleted ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-500/10" />
+              ) : (
+                <Circle className="w-5 h-5" />
+              )}
+            </button>
+          ) : (
+            <FileText className="w-4 h-4 mt-1 text-zinc-400 flex-shrink-0" />
+          )}
+
+          <h3
+            className={`font-semibold text-base leading-snug break-words flex-1 ${
+              isCompleted
+                ? 'line-through text-zinc-400 dark:text-zinc-500'
+                : 'text-zinc-800 dark:text-zinc-100'
+            }`}
+          >
+            {item.title || '(Untitled)'}
+          </h3>
         </div>
 
         {/* Content Body */}
@@ -227,15 +246,17 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           )}
 
           {/* Tag Badges */}
-          {item.tags?.map((tag) => (
-            <span
-              key={tag}
-              className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400 text-xs font-medium"
-            >
-              <Tag className="w-2.5 h-2.5 opacity-60" />
-              {tag}
-            </span>
-          ))}
+          {item.tags
+            ?.filter((tag) => tag.toLowerCase() !== 'todo' && tag.toLowerCase() !== 'note')
+            .map((tag) => (
+              <span
+                key={tag}
+                className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400 text-xs font-medium"
+              >
+                <Tag className="w-2.5 h-2.5 opacity-60" />
+                {tag}
+              </span>
+            ))}
         </div>
 
         <span className="text-xs text-zinc-400 dark:text-zinc-500 ml-auto">

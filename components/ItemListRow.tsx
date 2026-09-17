@@ -66,8 +66,8 @@ export const ItemListRow: React.FC<ItemListRowProps> = ({
         </button>
       )}
 
-      {/* Left Area: Icon / Checkbox + Title + Snippet */}
-      <div className="flex items-center gap-3 flex-1 min-w-0">
+      {/* Left Area: Icon / Checkbox + Type Label + Title + Snippet */}
+      <div className="flex items-center gap-2.5 flex-1 min-w-0">
         {/* Checkbox or Note Icon */}
         {isTodo ? (
           <button
@@ -84,6 +84,17 @@ export const ItemListRow: React.FC<ItemListRowProps> = ({
         ) : (
           <FileText className="w-4 h-4 text-zinc-400 flex-shrink-0" />
         )}
+
+        {/* Type Label Pill */}
+        <span
+          className={`inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold uppercase tracking-wider flex-shrink-0 select-none ${
+            isTodo
+              ? 'bg-emerald-100/90 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60'
+              : 'bg-indigo-100/90 text-indigo-800 dark:bg-indigo-950/70 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60'
+          }`}
+        >
+          {isTodo ? 'Todo' : 'Note'}
+        </span>
 
         {/* Title and Snippet */}
         <div className="flex items-baseline gap-2 flex-1 min-w-0">
@@ -139,12 +150,18 @@ export const ItemListRow: React.FC<ItemListRowProps> = ({
         )}
 
         {/* First Tag */}
-        {item.tags && item.tags.length > 0 && (
-          <span className="items-center gap-1 px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-medium hidden 2xl:flex flex-shrink-0">
-            <Tag className="w-2.5 h-2.5 opacity-50" />
-            {item.tags[0]}
-          </span>
-        )}
+        {(() => {
+          const customTags = item.tags?.filter(
+            (t) => t.toLowerCase() !== 'todo' && t.toLowerCase() !== 'note'
+          );
+          if (!customTags || customTags.length === 0) return null;
+          return (
+            <span className="items-center gap-1 px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-medium hidden 2xl:flex flex-shrink-0">
+              <Tag className="w-2.5 h-2.5 opacity-50" />
+              {customTags[0]}
+            </span>
+          );
+        })()}
 
         {/* Timestamp & Hover Action Swapper */}
         <div className="relative flex items-center justify-end min-w-[65px] h-6 flex-shrink-0">

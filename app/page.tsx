@@ -150,18 +150,26 @@ export default function ZenTabPage() {
   const handleSaveItem = useCallback(
     (itemData: Partial<ZenItem>, isNew: boolean) => {
       const now = new Date().toISOString();
+      const itemType = itemData.type || (editingItem ? editingItem.type : 'todo');
+      const existingTags =
+        itemData.tags !== undefined ? itemData.tags : editingItem ? editingItem.tags : [];
+      // Always ensure the item has a label 'note' or 'todo' based on its type
+      const otherTags = existingTags.filter(
+        (t) => t.toLowerCase() !== 'todo' && t.toLowerCase() !== 'note'
+      );
+      const finalTags = [itemType, ...otherTags];
 
       if (isNew) {
         const newItem: ZenItem = {
           id: 'zen-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
-          type: itemData.type || 'todo',
+          type: itemType,
           title: itemData.title || 'Untitled',
           content: itemData.content || '',
           subtasks: itemData.subtasks || [],
           completed: false,
           completedAt: null,
           priority: itemData.priority,
-          tags: itemData.tags || [],
+          tags: finalTags,
           pinned: itemData.pinned || false,
           color: itemData.color || 'yellow',
           createdAt: now,
@@ -176,6 +184,8 @@ export default function ZenTabPage() {
             return {
               ...it,
               ...itemData,
+              type: itemType,
+              tags: finalTags,
               updatedAt: now,
             };
           }
@@ -302,6 +312,7 @@ export default function ZenTabPage() {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter(
         (it) =>
+          it.type.toLowerCase().includes(q) ||
           it.title.toLowerCase().includes(q) ||
           it.content.toLowerCase().includes(q) ||
           it.tags?.some((t) => t.toLowerCase().includes(q))
