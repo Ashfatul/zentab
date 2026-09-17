@@ -30,6 +30,7 @@ interface LeftPanelProps {
   defaultType: ItemType;
   onSaveItem: (itemData: Partial<ZenItem>, isNew: boolean) => void;
   onCancelEdit: () => void;
+  onDeleteItem?: (id: string) => void;
 }
 
 export const LeftPanel: React.FC<LeftPanelProps> = ({
@@ -37,6 +38,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
   defaultType,
   onSaveItem,
   onCancelEdit,
+  onDeleteItem,
 }) => {
   const [type, setType] = useState<ItemType>(editingItem ? editingItem.type : defaultType);
   const [title, setTitle] = useState(editingItem ? editingItem.title : '');
@@ -235,13 +237,26 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
               <Sparkles className="w-3.5 h-3.5" />
               Editing {editingItem.type === 'todo' ? 'Todo' : 'Note'}
             </span>
-            <button
-              onClick={onCancelEdit}
-              className="text-amber-600 hover:text-amber-800 dark:text-amber-400 p-0.5 rounded cursor-pointer"
-              title="Cancel Edit"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex items-center gap-1">
+              {onDeleteItem && (
+                <button
+                  type="button"
+                  onClick={() => onDeleteItem(editingItem.id)}
+                  className="text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 p-0.5 rounded cursor-pointer"
+                  title="Delete Item"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onCancelEdit}
+                className="text-amber-600 hover:text-amber-800 dark:text-amber-400 p-0.5 rounded cursor-pointer"
+                title="Cancel Edit"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         ) : null}
 
@@ -751,13 +766,25 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
           </button>
 
           {editingItem ? (
-            <button
-              type="button"
-              onClick={onCancelEdit}
-              className="py-2.5 px-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs font-semibold transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
+            <div className="flex items-center gap-1.5">
+              {onDeleteItem && (
+                <button
+                  type="button"
+                  onClick={() => onDeleteItem(editingItem.id)}
+                  className="p-2.5 rounded-xl text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200/70 dark:border-rose-900/50 transition-colors cursor-pointer"
+                  title="Delete this item"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onCancelEdit}
+                className="py-2.5 px-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
           ) : (
             (title || content || subtasks.length > 0 || dueDate || tags.length > 0) && (
               <button

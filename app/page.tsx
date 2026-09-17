@@ -7,6 +7,7 @@ import { RightFeed } from '../components/RightFeed';
 import { SettingsModal } from '../components/SettingsModal';
 import { KeyboardShortcutsModal } from '../components/KeyboardShortcutsModal';
 import { Toast } from '../components/Toast';
+import { DeleteConfirmModal } from '../components/DeleteConfirmModal';
 import {
   FilterType,
   ZenItem,
@@ -32,6 +33,7 @@ export default function ZenTabPage() {
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const [lastDeletedItem, setLastDeletedItem] = useState<ZenItem | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<ZenItem | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // 1. Initial Data Loading from Storage (chrome.storage or localStorage)
@@ -112,6 +114,10 @@ export default function ZenTabPage() {
       }
 
       if (e.key === 'Escape') {
+        if (itemToDelete) {
+          setItemToDelete(null);
+          return;
+        }
         if (isSettingsOpen) setIsSettingsOpen(false);
         if (isShortcutsOpen) setIsShortcutsOpen(false);
         if (editingItem) setEditingItem(null);
@@ -121,7 +127,7 @@ export default function ZenTabPage() {
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [isSettingsOpen, isShortcutsOpen, editingItem, searchQuery]);
+  }, [itemToDelete, isSettingsOpen, isShortcutsOpen, editingItem, searchQuery]);
 
   // 4. Save updates to storage
   const updateItems = useCallback(
@@ -235,23 +241,31 @@ export default function ZenTabPage() {
     [items, updateItems]
   );
 
-  // Delete item with Undo capability
+  // Delete item with Undo capability (opens custom confirmation modal)
   const handleDeleteItem = useCallback(
     (id: string) => {
       const toDelete = items.find((it) => it.id === id);
-      if (!toDelete) return;
-
-      const updated = items.filter((it) => it.id !== id);
-      updateItems(updated);
-      if (editingItem?.id === id) {
-        setEditingItem(null);
+      if (toDelete) {
+        setItemToDelete(toDelete);
       }
-
-      setLastDeletedItem(toDelete);
-      setToastMessage(`"${toDelete.title}" deleted`);
     },
-    [items, editingItem, updateItems]
+    [items]
   );
+
+  // Confirmed delete execution
+  const handleConfirmDelete = useCallback(() => {
+    if (!itemToDelete) return;
+    const toDelete = itemToDelete;
+    const updated = items.filter((it) => it.id !== toDelete.id);
+    updateItems(updated);
+    if (editingItem?.id === toDelete.id) {
+      setEditingItem(null);
+    }
+
+    setLastDeletedItem(toDelete);
+    setToastMessage(`"${toDelete.title}" deleted`);
+    setItemToDelete(null);
+  }, [itemToDelete, items, editingItem, updateItems]);
 
   // Undo delete
   const handleUndoDelete = useCallback(() => {
@@ -349,6 +363,7 @@ export default function ZenTabPage() {
           defaultType={settings.defaultType}
           onSaveItem={handleSaveItem}
           onCancelEdit={() => setEditingItem(null)}
+          onDeleteItem={handleDeleteItem}
         />
 
         {/* Right Area: Rest (~67%) Feed with Date Separators & Dual Views */}
@@ -382,6 +397,14 @@ export default function ZenTabPage() {
       <KeyboardShortcutsModal
         isOpen={isShortcutsOpen}
         onClose={() => setIsShortcutsOpen(false)}
+      />
+
+      {/* Custom Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={itemToDelete !== null}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        item={itemToDelete}
       />
 
       {/* Toast Notification (Undo on Delete) */}

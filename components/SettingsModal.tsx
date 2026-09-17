@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   X,
   StickyNote,
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { ThemeMode, ViewMode, ZenSettings } from '../lib/types';
 import { exportBackup, exportMarkdown, importBackup } from '../lib/storage';
+import { DeleteConfirmModal } from './DeleteConfirmModal';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onReloadItems,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
 
   if (!isOpen) return null;
 
@@ -277,12 +279,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
             <button
               type="button"
-              onClick={() => {
-                if (confirm('Are you sure you want to clear all notes and tasks? This cannot be undone.')) {
-                  onClearAll();
-                }
-              }}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg border border-rose-200 dark:border-rose-900/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-medium transition-colors"
+              onClick={() => setIsConfirmClearOpen(true)}
+              className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg border border-rose-200 dark:border-rose-900/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-medium transition-colors cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
               Clear All Data & Reset
@@ -295,6 +293,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           ZenTab v1.0 • Modern New Tab for Chrome & Firefox
         </div>
       </div>
+
+      {/* Delete Confirmation Modal for Clear All */}
+      <DeleteConfirmModal
+        isOpen={isConfirmClearOpen}
+        onClose={() => setIsConfirmClearOpen(false)}
+        onConfirm={() => {
+          onClearAll();
+          setIsConfirmClearOpen(false);
+        }}
+        isClearAll={true}
+      />
     </div>
   );
 };
