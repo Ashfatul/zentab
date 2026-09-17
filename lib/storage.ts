@@ -1,5 +1,4 @@
 import { ZenItem, ZenSettings } from './types';
-import { initialSampleItems } from './sampleData';
 
 const ITEMS_STORAGE_KEY = 'zentab_items_v1';
 const SETTINGS_STORAGE_KEY = 'zentab_settings_v1';
@@ -75,14 +74,22 @@ export async function loadItems(): Promise<ZenItem[]> {
     if (isExtensionStorageAvailable()) {
       const items = await getExtStorage<ZenItem[]>(ITEMS_STORAGE_KEY);
       if (items && Array.isArray(items)) {
-        return items;
+        const filtered = items.filter((item) => !item.id?.startsWith('sample-'));
+        if (filtered.length !== items.length) {
+          await setExtStorage(ITEMS_STORAGE_KEY, filtered);
+        }
+        return filtered;
       }
     } else if (typeof window !== 'undefined' && window.localStorage) {
       const raw = localStorage.getItem(ITEMS_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-          return parsed;
+          const filtered = parsed.filter((item: ZenItem) => !item.id?.startsWith('sample-'));
+          if (filtered.length !== parsed.length) {
+            localStorage.setItem(ITEMS_STORAGE_KEY, JSON.stringify(filtered));
+          }
+          return filtered;
         }
       }
     }
@@ -90,8 +97,8 @@ export async function loadItems(): Promise<ZenItem[]> {
     console.error('Failed to load items from storage:', err);
   }
 
-  // Return initial sample items on first run
-  return initialSampleItems;
+  // Return empty list on first run
+  return [];
 }
 
 /**
